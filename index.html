@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>詞語圖片生成｜Shelleytaiwan</title>
+<style>
+:root{--ink:#253253;--muted:#74809f;--line:#dce3f5;--bg:#f3f5fc;--panel:#fff;--blue:#5268b2;--blue2:#e9edfb;--gold:#ffc94d;--shadow:0 3px 12px #293b6810}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif}
+header{height:auto;min-height:66px;padding:14px max(22px,calc((100% - 1280px)/2));display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}header strong{font-size:18px}header .sub{font-size:12px;color:var(--muted)}
+main{max-width:1280px;margin:12px auto 34px;padding:0 20px;display:grid;grid-template-columns:360px minmax(0,1fr);gap:22px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:20px;box-shadow:var(--shadow)}
+h2{font-size:16px;margin:0 0 16px}label{display:block;font-weight:650;font-size:13px;margin:14px 0 7px}input[type=text],textarea,select{width:100%;border:1px solid #cbd5ef;border-radius:11px;padding:11px 12px;color:var(--ink);background:white;font:inherit;outline:none}textarea{resize:vertical;min-height:190px}input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #5268b21a}.hint{font-size:12px;color:var(--muted);margin-top:6px}.seg{display:flex;border:1px solid #cbd5ef;border-radius:12px;padding:3px;gap:3px}.seg button{flex:1;border:0;background:white;color:#566382;border-radius:9px;padding:9px 5px;cursor:pointer}.seg button.active{background:var(--blue);color:white}.primary,.secondary,.small{border:0;border-radius:11px;padding:11px 14px;cursor:pointer;font:inherit}.primary{background:var(--blue);color:white;width:100%;font-weight:700;margin-top:16px}.secondary{background:var(--blue2);color:var(--ink)}.small{padding:7px 10px;background:var(--blue2);color:var(--ink);font-size:12px}.primary:disabled{opacity:.45;cursor:not-allowed}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px}.toolbar h2{margin:0}.actions{display:flex;gap:8px;flex-wrap:wrap}.notice{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px 15px;font-size:13px;color:#526080;margin-bottom:14px}.notice b{color:var(--ink)}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.word-card{border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;min-width:0}.word-card.side{display:grid;grid-template-columns:minmax(110px,42%) 1fr;gap:10px;align-items:start}.word-card.side .card-head{grid-column:1/-1}.word-card.side .preview{grid-column:1;grid-row:2/5;height:145px}.word-card.side .card-actions,.word-card.side .prompt{grid-column:2}.word-card.side .prompt{min-height:90px}.word-card.side .card-actions{margin-top:0}.card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.word-title{font-weight:750;overflow-wrap:anywhere}.num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:12px;margin-right:6px}.preview{height:190px;border:1px dashed #cbd5ef;border-radius:11px;background:#f8f9fd;display:grid;place-items:center;overflow:hidden;position:relative;color:#9aa4bd;font-size:13px;text-align:center}.preview img{width:100%;height:100%;object-fit:contain;background:#fff}.preview .empty{padding:15px}.card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.prompt{min-height:110px;font-size:12px;margin-top:9px}.upload{display:none}.foot{text-align:center;color:#8992aa;font-size:11px;padding:18px 10px 24px}.empty-state{text-align:center;padding:65px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:14px;background:#fafbff}.status{font-size:12px;color:var(--muted)}
+@media(max-width:850px){main{grid-template-columns:1fr}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){main{padding:0 12px}.cards{grid-template-columns:1fr}.preview{height:220px}.panel{padding:15px}header{padding:12px 16px}}
+
+.preview{display:flex;flex-direction:column;place-items:initial}.preview .pimg{flex:1;min-height:0;width:100%;position:relative;display:grid;place-items:center}.preview .pimg img{position:absolute;inset:0}.preview .pcap{flex:none;width:100%;background:#fff;border-top:1px solid var(--line);padding:6px 8px;font-weight:700;font-size:14px;color:var(--ink);text-align:center;white-space:pre-wrap;overflow:hidden;max-height:76px;display:flex;align-items:center;justify-content:center}
+.word-card.side .preview{flex-direction:row}.word-card.side .preview .pcap{width:42%;max-height:none;border-top:0;border-left:1px solid var(--line)}.word-card.side.hascap{grid-template-columns:minmax(150px,56%) 1fr}.word-card.side .capwrap{grid-column:2}
+.capwrap{margin-top:9px}.capl{font-size:12px;color:var(--muted);margin-bottom:4px}textarea.cap{min-height:0;height:auto;font-size:13px;padding:7px 9px}
+</style></head>
+<body>
+<header><div><strong>🖼️ 詞語圖片生成</strong><div class="sub">Vocabulary Image Maker · Shelleytaiwan</div></div><div class="sub">輸入詞語 → 產生提示詞 → 使用 AI 製圖 → 下載圖片</div></header>
+<main>
+<section class="panel">
+<h2>教學內容 Teaching content</h2>
+<label for="topic">主題（可留空）</label><input id="topic" type="text" placeholder="例：水果 Fruit">
+<label for="words">詞語（每行一個，可輸入 4～10 個）</label><textarea id="words" placeholder="芒果&#10;荔枝&#10;菠蘿蜜&#10;車厘子" maxlength="500"></textarea><div class="hint" id="count">0 / 10 張。請輸入 4～10 個不同詞語。</div>
+<label>圖片風格</label><div class="seg" id="style"><button class="active" data-value="illustration">繪本插畫</button><button data-value="photo">真實照片</button></div>
+<label>學生程度</label><select id="level"><option value="adult">成人</option><option value="child">兒童</option><option value="beginner">初級學習者</option></select>
+<label>圖片與文字排版</label><div class="seg" id="layout"><button class="active" data-value="top">圖在上</button><button data-value="side">圖在字旁邊</button></div>
+<label>下載圖片是否顯示文字</label><div class="seg" id="showtext"><button class="active" data-value="on">顯示文字</button><button data-value="off">不顯示（只有檔名）</button></div><div class="hint">顯示文字：依上面的排版，在圖片下方（圖在上）或右方（圖在字旁邊）留白，加上可編輯的文字。不顯示：只下載原圖，詞語只出現在檔名。</div>
+<label>AI 平台（二選一）</label><div class="seg" id="platform"><button class="active" data-value="chatgpt">ChatGPT</button><button data-value="gemini">Gemini</button></div>
+<div class="hint">本工具不呼叫 API、不需 API Key。會依照所選平台整理提示詞，並由你在 ChatGPT 或 Gemini 中生成圖片。</div>
+<button class="primary" id="make">✦ 整理詞語</button>
+<div class="hint" style="text-align:center;margin-top:9px">複製一份提示詞，請 AI 一次生成符合數量的總圖；上傳後自動裁切。個別不滿意時，可單獨重做。</div>
+</section>
+<section class="panel">
+<div class="toolbar"><h2>圖片預覽 Preview <span class="status" id="progress"></span></h2><div class="actions"><button class="secondary" id="copyAll" disabled>複製一次：全部詞語</button><button class="secondary" id="openAI">開啟 AI 平台 ↗</button><button class="secondary" id="download" disabled>下載全部圖片 ZIP</button></div></div>
+<div class="notice"><b>快速流程：</b>複製一次全部詞語提示詞 → 到 ChatGPT／Gemini 生成一張總圖 → 上傳總圖自動裁切成對應張數。若只有某張不滿意，可單獨複製該張的重做提示詞。<div id="noticeGrid" style="margin-top:6px"><b>按「整理詞語」後，這裡會顯示總圖的欄列數。</b></div></div>
+<div class="actions" style="margin:0 0 14px"><label class="small" for="sheetUpload" style="margin:0;cursor:pointer">上傳 AI 生成的詞語總圖，自動裁切</label><input id="sheetUpload" type="file" accept="image/*" style="max-width:220px"></div>
+<div id="cards" class="empty-state">請在左側輸入 4～10 個不同的詞語，再按「整理詞語」開始。</div>
+</section>
+</main>
+<footer class="foot">Shelleytaiwan 製作 · 2027 · 請勿商用</footer>
+<script>
+const $=s=>document.querySelector(s);let style='illustration',platform='chatgpt',layout='top',showText=true,items=[];
+document.querySelectorAll('#style button').forEach(b=>b.onclick=()=>{style=b.dataset.value;document.querySelectorAll('#style button').forEach(x=>x.classList.toggle('active',x===b));});
+document.querySelectorAll('#platform button').forEach(b=>b.onclick=()=>{platform=b.dataset.value;document.querySelectorAll('#platform button').forEach(x=>x.classList.toggle('active',x===b));});
+document.querySelectorAll('#layout button').forEach(b=>b.onclick=()=>{layout=b.dataset.value;document.querySelectorAll('#layout button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.word-card').forEach(c=>c.classList.toggle('side',layout==='side'));});
+function gridFor(n){const map={4:[2,2],5:[3,2],6:[3,2],7:[4,2],8:[4,2],9:[3,3],10:[5,2]};const [cols,rows]=map[n]||[Math.ceil(Math.sqrt(n)),Math.ceil(n/Math.ceil(Math.sqrt(n)))];return{cols,rows}}
+document.querySelectorAll('#showtext button').forEach(b=>b.onclick=()=>{showText=b.dataset.value==='on';document.querySelectorAll('#showtext button').forEach(x=>x.classList.toggle('active',x===b));if(items.length)render();});
+function getWords(){return [...new Set($('#words').value.split(/[\n,，、;；]+/).map(x=>x.trim()).filter(Boolean))].slice(0,10)}
+$('#words').addEventListener('input',()=>{$('#count').textContent=getWords().length+' / 10 張。請輸入 4～10 個不同詞語。';});
+function visualStyle(){return style==='illustration'?'A cohesive set of gentle, beautifully rendered picture-book watercolor illustrations, soft natural colors, delicate hand-painted texture':'A cohesive set of high-quality realistic documentary photographs, natural lighting, accurate colors and textures'}
+function audienceStyle(){return $('#level').value==='child'?'for young children, friendly and immediately recognizable':$('#level').value==='beginner'?'for beginner language learners, clear and culturally neutral':'for adult language learners'}
+function promptFor(word){const topic=$('#topic').value.trim();return `Create ONE standalone educational vocabulary image showing: “${word}”. ${topic?'Topic: '+topic+'. ':''}${visualStyle()}. ${audienceStyle()}. Depict the meaning accurately and unmistakably. One main subject, centered, uncluttered light neutral background, no text, no letters, no labels, no watermark. Square composition.`}
+function bulkPrompt(){
+  const topic=$('#topic').value.trim(),g=gridFor(items.length);
+  const words=items.map((x,i)=>`${i+1}. ${x.word}`).join('\n');
+  return `Create ONE clean educational vocabulary contact sheet containing EXACTLY ${items.length} separate image panels, arranged in ${g.cols} columns and ${g.rows} rows. Reading order is left to right, then top to bottom. Each used cell must be equal size, with clear straight boundaries and a small even white gutter. ${g.cols*g.rows>items.length?`There are ${g.cols*g.rows-items.length} unused cell(s); leave those final cell(s) completely blank and white. Do NOT add extra objects to fill them.`:''} Do not add a title, numbers, captions, words, letters, labels, borders around the outside, or watermark. Each used cell contains ONLY the matching subject below, centered, isolated on a clean light neutral background. Do not merge cells or let objects cross cell boundaries. Use the same visual style and scale consistently across all panels. Style: ${visualStyle()}. Audience: ${audienceStyle()}. ${topic?'Topic: '+topic+'. ':''}The exact cell order is:\n${words}\nMake each object accurate, recognizable, and visually distinct. The output must be a flat ${g.cols}-by-${g.rows} grid image with equal-sized cells, suitable for automatic cropping into exactly ${items.length} individual images.`;
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('#make').onclick=()=>{
+  const words=getWords();
+  if(words.length<4||words.length>10){
+    alert('請輸入 4～10 個不同的詞語。');
+    return;
+  }
+  items=words.map((word,i)=>({word,caption:word,prompt:promptFor(word),url:null,file:null}));
+  const g=gridFor(words.length);
+  $('#noticeGrid').textContent=`目前 ${words.length} 個詞語，AI 總圖排列為 ${g.cols} 欄 × ${g.rows} 列。`;
+  render();
+};
+function render(){const root=$('#cards');root.className='cards';root.innerHTML='';items.forEach((it,i)=>{const card=document.createElement('article');card.className='word-card'+(layout==='side'?' side':'')+(showText?' hascap':'');card.innerHTML=`<div class="card-head"><div class="word-title"><span class="num">${i+1}</span>${escapeHtml(it.word)}</div><button class="small" data-copy="${i}">單獨重做提示詞</button></div><div class="preview" id="preview${i}"><div class="pimg">${it.url?`<img alt="${escapeHtml(it.word)}" src="${it.url}">`:'<div class="empty">尚未放入圖片<br>請先到 AI 平台生成圖片</div>'}</div>${showText?`<div class="pcap" id="pcap${i}">${escapeHtml(capOf(it))}</div>`:''}</div><input class="upload" id="file${i}" type="file" accept="image/*"><div class="card-actions"><button class="small" data-upload="${i}">${it.url?'更換圖片':'上傳圖片'}</button><button class="small" data-clear="${i}" ${it.url?'':'disabled'}>移除圖片</button><button class="small" data-reprompt="${i}">重新整理提示詞</button></div>${showText?`<div class="capwrap"><div class="capl">圖片上顯示的文字（可編輯）</div><textarea class="cap" rows="2" data-cap="${i}">${escapeHtml(capOf(it))}</textarea></div>`:''}<textarea class="prompt" aria-label="${escapeHtml(it.word)} 的圖片提示詞">${escapeHtml(it.prompt)}</textarea>`;root.appendChild(card);});
+root.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>copy(items[+b.dataset.copy].prompt,b));root.querySelectorAll('[data-upload]').forEach(b=>b.onclick=()=>$('#file'+b.dataset.upload).click());root.querySelectorAll('input[type=file]').forEach(inp=>inp.onchange=e=>{const i=+inp.id.replace('file',''),f=e.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){alert('請選擇圖片檔案。');return}items[i].file=f;if(items[i].url)URL.revokeObjectURL(items[i].url);items[i].url=URL.createObjectURL(f);render();});root.querySelectorAll('[data-clear]').forEach(b=>b.onclick=()=>{const i=+b.dataset.clear;if(items[i].url)URL.revokeObjectURL(items[i].url);items[i].url=null;items[i].file=null;render();});root.querySelectorAll('[data-reprompt]').forEach(b=>b.onclick=()=>{const i=+b.dataset.reprompt;items[i].prompt=promptFor(items[i].word);render();});root.querySelectorAll('.prompt').forEach((t,i)=>t.oninput=()=>items[i].prompt=t.value);root.querySelectorAll('textarea.cap').forEach(t=>t.oninput=()=>{const i=+t.dataset.cap;items[i].caption=t.value;const p=$('#pcap'+i);if(p)p.textContent=t.value;});
+$('#copyAll').disabled=!items.length;$('#download').disabled=!items.some(x=>x.file);updateProgress();}
+async function copy(s,b){try{await navigator.clipboard.writeText(s);const old=b.textContent;b.textContent='已複製';setTimeout(()=>b.textContent=old,1200)}catch(e){alert('無法自動複製，請手動選取提示詞。')}}
+$('#copyAll').onclick=()=>copy(bulkPrompt(),$('#copyAll'));
+$('#sheetUpload').onchange=async e=>{
+  const f=e.target.files[0];
+  if(!f||!items.length)return;
+  try{
+    const img=await createImageBitmap(f),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+    const {cols,rows}=gridFor(items.length),cw=Math.floor(img.width/cols),ch=Math.floor(img.height/rows);
+    canvas.width=cw;canvas.height=ch;
+    for(let i=0;i<items.length;i++){
+      const col=i%cols,row=Math.floor(i/cols);
+      ctx.clearRect(0,0,cw,ch);
+      ctx.drawImage(img,col*cw,row*ch,cw,ch,0,0,cw,ch);
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+      if(items[i].url)URL.revokeObjectURL(items[i].url);
+      items[i].file=new File([blob],items[i].word+'.png',{type:'image/png'});
+      items[i].url=URL.createObjectURL(blob);
+    }
+    render();
+    alert(`已依照 ${cols} 欄 × ${rows} 列順序裁切成 ${items.length} 張圖片。請檢查每張卡片，必要時可單獨更換。`);
+  }catch(err){alert('圖片裁切失敗，請確認上傳的是一般圖片檔。')}
+  e.target.value='';
+};
+$('#openAI').onclick=()=>window.open(platform==='chatgpt'?'https://chatgpt.com/':'https://gemini.google.com/','_blank','noopener');
+function updateProgress(){const n=items.filter(x=>x.file).length;$('#progress').textContent=items.length?`（已放入 ${n}/${items.length} 張）`:'';$('#download').disabled=n===0;}
+// Minimal ZIP writer (store method; no external library required)
+function crc32(data){let c=~0;for(let i=0;i<data.length;i++){c^=data[i];for(let j=0;j<8;j++)c=(c>>>1)^((c&1)?0xedb88320:0)}return(~c)>>>0}
+function u16(n){return [n&255,(n>>>8)&255]}function u32(n){return [n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]}
+function capOf(it){return it.caption!==undefined?it.caption:it.word}
+function wrapLines(ctx,text,maxW){const out=[];for(const para of String(text).split('\n')){const tokens=para.match(/[\u3000-\u9fff\uff00-\uffef]|[^\s\u3000-\u9fff\uff00-\uffef]+|\s+/g)||[''];let line='';for(const t of tokens){const test=line+t;if(line&&ctx.measureText(test).width>maxW){out.push(line.trimEnd());line=t.trimStart()}else line=test}out.push(line.trimEnd())}return out}
+async function composeImage(it){
+  const img=await createImageBitmap(it.file),w=img.width,h=img.height,text=capOf(it).trim();
+  const fontOf=fs=>`700 ${fs}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
+  const m=document.createElement('canvas').getContext('2d'),c=document.createElement('canvas');
+  let ctx,fs,lh,lines,pad;
+  if(layout==='top'){
+    fs=Math.round(Math.max(24,Math.min(w*0.09,h*0.12)));pad=Math.round(fs*0.6);
+    m.font=fontOf(fs);lines=wrapLines(m,text,w-pad*2);lh=Math.round(fs*1.4);
+    const bandH=Math.max(Math.round(fs*2.6),lines.length*lh+pad*2);
+    c.width=w;c.height=h+bandH;ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0);
+    ctx.font=fontOf(fs);ctx.fillStyle='#253253';ctx.textAlign='center';ctx.textBaseline='middle';
+    let y=h+(bandH-lines.length*lh)/2+lh/2;lines.forEach(l=>{ctx.fillText(l,w/2,y);y+=lh});
+  }else{
+    const tw=Math.round(w*0.7);
+    fs=Math.round(Math.max(24,Math.min(tw*0.13,h*0.1)));
+    for(;;){pad=Math.round(fs*0.8);m.font=fontOf(fs);lines=wrapLines(m,text,tw-pad*2);lh=Math.round(fs*1.4);if(lines.length*lh<=h-pad*2||fs<=16)break;fs-=2}
+    c.width=w+tw;c.height=h;ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0);
+    ctx.font=fontOf(fs);ctx.fillStyle='#253253';ctx.textAlign='center';ctx.textBaseline='middle';
+    let y=(h-lines.length*lh)/2+lh/2;lines.forEach(l=>{ctx.fillText(l,w+tw/2,y);y+=lh});
+  }
+  return await new Promise(r=>c.toBlob(r,'image/png'));
+}
+$('#download').onclick=async()=>{const chosen=items.filter(x=>x.file);if(!chosen.length)return;const btn=$('#download'),oldText=btn.textContent;btn.disabled=true;btn.textContent='處理中…';
+try{
+const files=[];for(const it of chosen){let blob=it.file,ext=(it.file.name.split('.').pop()||'png');if(showText&&capOf(it).trim()){blob=await composeImage(it);ext='png'}files.push({name:(it.word.replace(/[\\/:*?"<>|]/g,'_')||'image')+'.'+ext,blob})}
+const enc=new TextEncoder(),parts=[],central=[];let offset=0;
+for(const f of files){const data=new Uint8Array(await f.blob.arrayBuffer()),name=enc.encode(f.name),crc=crc32(data);
+const local=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0),...name]);parts.push(local,data);
+const cd=new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...name]);central.push(cd);offset+=local.length+data.length;}
+const centralSize=central.reduce((a,b)=>a+b.length,0),end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(centralSize),...u32(offset),...u16(0)]);
+const zip=new Blob([...parts,...central,end],{type:'application/zip'}),url=URL.createObjectURL(zip),a=document.createElement('a');a.href=url;a.download='詞語圖片_'+new Date().toISOString().slice(0,10)+'.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}catch(err){alert('打包圖片失敗：'+err.message)}
+btn.textContent=oldText;updateProgress();};
+</script></body></html>
